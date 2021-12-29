@@ -25,7 +25,7 @@ app.get('/products/:id', (req: Request, res: Response) => {
 app.post('/products', (req: Request, res: Response) => {
     const listProps: ListProps = req.body
     const { page, pageSize, search } = listProps
-
+//commet
     if (search != null) {
         let products = data.filter((data => data.name.toUpperCase().includes(req.body.search.toUpperCase())))
         return res.json(pagination(page, pageSize, products))
