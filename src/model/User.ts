@@ -1,5 +1,5 @@
 
-export interface user {
+export interface User {
     idUser:string,
     firstName:string,
     lastName:string,
