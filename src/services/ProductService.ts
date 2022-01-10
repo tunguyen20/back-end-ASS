@@ -32,16 +32,14 @@ class ProductService {
     DeleteProduct = async (id: string) => {
         await pool.query(`DELETE FROM public.product WHERE "idProduct"='${id}'`);
     }
-    UpdateProduct=async (product: Product, id: string)=>{
-         await pool.query(`UPDATE public.product SET "name"='${product.name}' , img='${product.img}', price=${product.price} WHERE "idProduct"='${id}';`);
+    UpdateProduct = async (product: Product, id: string) => {
+        await pool.query(`UPDATE public.product SET "name"='${product.name}' , img='${product.img}', price=${product.price} WHERE "idProduct"='${id}';`);
     }
 
-    getProductDetail= async (idProduct:string)=>{
+    getProductDetail = async (idProduct: string) => {
         const product = await pool.query(`select *from public.product where "idProduct" ='${idProduct}'`);
         return product.rows[0]
     }
-
-    
 }
 
 export const productService = new ProductService()

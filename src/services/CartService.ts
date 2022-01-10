@@ -50,6 +50,7 @@ class CartService {
     }
     saveInforUserAndAddOrder = async (inforUser: User,idOrder:string) => {
         let timeNow = new Date();
+        
         //update user
         await pool.query(`UPDATE public."user"
         SET "firstName"='${inforUser.firstName}', "lastName"='${inforUser.lastName}', phone='${inforUser.phone}', email='${inforUser.email}', address='${inforUser.address}', postcode='${inforUser.postcode}'

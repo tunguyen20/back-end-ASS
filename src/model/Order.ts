@@ -2,13 +2,13 @@ import { orderProduct } from "./Cart";
 import { Product } from "./Product";
 import { User } from "./User";
 
-interface Cart {
-    idProduct: number
-    price: number
-    name: string
-    img: string
-    quantity: number
-}
+// interface Cart {
+//     idProduct: number
+//     price: number
+//     name: string
+//     img: string
+//     quantity: number
+// }
 export interface Order {
     idOrder: string
     idUser: string

@@ -21,6 +21,7 @@ class ProductController {
         await productService.UpdateProduct(product, idProduct)
     }
     getProductDetail = async (req: Request, res: Response) => {
+   
         let idProduct = req.params.id
         return res.json( await productService.getProductDetail(idProduct))
     }
