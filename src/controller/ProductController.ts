@@ -1,29 +1,58 @@
 import { productService } from "../services/ProductService"
 import express, { Request, Response, Router } from 'express'
-import { Product } from "../model/Product";
+import { BookLine } from "../model/Product";
+import { match } from "assert";
 class ProductController {
     getListProductWithPagination = async (req: Request, res: Response) => {
         const search = req.body.search;
         const pageSize = req.body.pageSize
         const page = req.body.page
-        return res.json(await productService.getListProductWithPagination(search, pageSize, page))
+        
+        console.log(search);
+        console.log(pageSize);
+        console.log(page);
+        
+        return res.json(await productService.getListProductWithPagination(search,page,pageSize))
+
+
     }
-    addProduct = async (req: Request, res: Response) => {
-        let product: Product = req.body.product;
-        return res.json(await productService.AddProduct(product))
+    getListBookSearchWithPagination = async (req: Request, res: Response) => {
+      
+        
+        const search = req.body.search
+        const pageSize =req.body.pageSize
+        const page = req.body.page
+        const idCategory=req.body.idCategory
+        const sortBy=req.body.sortBy
+        const minPrice=req.body.minPrice
+        const maxPrice=req.body.maxPrice
+       
+        
+        return res.json(await productService.getListProductSearchWithPagination(search,idCategory,sortBy,minPrice,maxPrice,page,pageSize))
+
+
     }
-    deleteProduct = async (req: Request, res: Response) => {
-        return res.json(await productService.DeleteProduct(req.params.id))
+    getListCategory=async(req:Request,res:Response)=>{
+        return res.json(await productService.getListCategory())
     }
-    updateProduct = async (req: Request, res: Response) => {
-        let product: Product = req.body;
-        let idProduct = req.params.id
-        await productService.UpdateProduct(product, idProduct)
+    getPublisher=async(req:Request,res:Response)=>{
+        return res.json(await productService.getListPublisher())
     }
+    addBook = async (req: Request, res: Response) => {
+        let BookLineBook: BookLine = req.body.bookLine
+        console.log(BookLineBook);
+        return res.json(await productService.AddProduct(BookLineBook))
+    }
+    deleteBook = async (req: Request, res: Response) => {
+        console.log(req.params.id   );
+        
+        return res.json(await productService.DeleteBook(req.params.id))
+    }
+    
     getProductDetail = async (req: Request, res: Response) => {
-   
+
         let idProduct = req.params.id
-        return res.json( await productService.getProductDetail(idProduct))
+        return res.json(await productService.getBookDetail(idProduct))
     }
 
 }

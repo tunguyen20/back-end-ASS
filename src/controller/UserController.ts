@@ -7,38 +7,29 @@ class UserController {
         return res.json(await userService.getInforUser(req.params.idUser))
     }
     checkLogin = async (req: Request, res: Response) => {
-
-        let idUser = await userService.getIdUserLogin(req.body.userName, req.body.password)
-        console.log(idUser);
+        let userResult = await userService.getIdUserLogin(req.body.userName, req.body.password)
         
-        if (idUser != undefined) {
+        if (userResult != undefined) {
             let user = {
-                id: idUser.idUser
+                id: userResult.idUser,
+                roles:userResult.roles,
             }
-            const token = jwt.sign(user, "passUser", { expiresIn: '20s' });
+            const token = jwt.sign(user, "passUser", { expiresIn: '30m' });
             res.header("token", token).send(token)
-
         } else {
             return res.json("false");
-
         }
     }
     getMe = async (req: Request, res: Response) => {
         const token = req.header('Authorization');
         if (!token) return res.status(401).send("Vui lòng đăng nhập để được truy cập")
         try {
-           let a= jwt.verify(token, "passUser")
-            // req.user = checkToken;
-              return res.json(await userService.getMe(a.id))
+            let verifyToken = jwt.verify(token, "passUser")
+            return res.json(await userService.getMe(verifyToken.id))
         } catch (error) {
-        // res.redirect('/login')e
-          
+            return res.status(403)
+
         }
-    
-         
-
- 
-
 
     }
 

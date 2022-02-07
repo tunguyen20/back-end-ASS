@@ -1,3 +1,4 @@
+import { QueryResult } from 'pg';
 import { pool } from "../controller/connectdatabase/Pool";
 
 class UserService {
@@ -6,11 +7,16 @@ class UserService {
         return inforUser.rows
     }
     getIdUserLogin = async (userName: string, passWord: string) => {
-        const idUser = await pool.query(`SELECT "idUser"
+        const userResult: QueryResult = await pool.query(`SELECT "idUser", roles
         FROM public."user" where "userName"='${userName}' and  "password" ='${passWord}' ;`);
-        return idUser.rows[0]
+        if (userResult.rows.length > 0) {
+            let idUser = userResult.rows[0].idUser
+            let roles = userResult.rows[0].roles
+            return { idUser, roles }
+        }
+
     }
-    getMe= async(idUser:string)=>{
+    getMe = async (idUser: string) => {
         const inferUser = await pool.query(`SELECT "idUser", "firstName", "lastName", phone, email, address, postcode, "userName"
         FROM public."user" where "idUser" = '${idUser}'`);
         return inferUser.rows[0]

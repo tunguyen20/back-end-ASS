@@ -3,85 +3,112 @@ import { QueryResult } from "pg";
 import { OrderWithDetail } from '../model/Order';
 
 class OrderService {
-    getListOrder = async (pageSize:number,pageIndex:number,idUser:string) => {
-        let resultNumberPageWithOrder: QueryResult = await pool.query(`select o."idOrder" 
-        FROM
-        "order" o join "user" u on o."idUser" = u."idUser"  where o."orderStatus" =true and u."idUser" ='1' 
-        group by o."idOrder"`
+    getListOrder = async (pageSize: number, page: number, idUser: string) => {
+        const resultOrderCount: QueryResult = await pool.query(`SELECT "idOrder" 
+                                    FROM
+                                   "order" o where o."isTemporary" = true and "idUser" ='${idUser}'
+                                 `
         );
-
-        const quantityOrderWithIdUser: number = resultNumberPageWithOrder.rowCount
-        let numberPageOrder: number = 0
-        quantityOrderWithIdUser % pageSize > 0 ? numberPageOrder = Math.ceil(quantityOrderWithIdUser / pageSize) : numberPageOrder = quantityOrderWithIdUser / pageSize
-        let arrNumberPageOrder = []
-        for (let i = 0; i < numberPageOrder; i++) {
-            arrNumberPageOrder.push(i)
-
-        }
-        let historyOrder: QueryResult = await pool.query(`SELECT * FROM public."order_product" op join "order" o on o."idOrder" = op."idOrder" join "user" u on u."idUser" = o."idUser"
-        join product p on p."idProduct" = op."idProduct" where  o."idOrder" in 
-        (SELECT o2."idOrder" 
-                    FROM
-                    "order" o2 join "user" u2 on o2."idUser" = u2."idUser"  where o2."orderStatus" =true and u2."idUser" ='${idUser}' 
-                    group by o2."idOrder"  limit ${pageSize} offset (${(pageIndex - 1) * pageSize})
-                    
-            );`
+        const bookCount: number = resultOrderCount.rowCount
+        
+        const historyOrder: QueryResult = await pool.query(`select o."idOrder",o."orderStatus" , o."orderDate" ,b."idBook"  , o."firstName" ,o."lastName" ,o.phone ,o.email ,o.address ,o.postcode ,ob.quantity ,ob.price  ,
+        bl."imageBookCover" ,bl."bookTitle", b.state 
+                from "order" o join order_book ob on o."idOrder" =ob."idOrder" join book b on b."idBook" =ob."idBook" 
+                join book_line bl  on bl."idBookLine" = b."idBookLine" where 
+                o."idOrder" in(SELECT "idOrder" 
+                                    FROM
+                                   "order" o where o."isTemporary" = true and "idUser" ='${idUser}'
+                                   limit ${pageSize} offset (${pageSize * (page - 1)}))`
         );
-        const listOrderRows = historyOrder.rows
-        let arrListIdOrder: [][] = []
-        let temp = []
-        for (let i = 0; i < historyOrder.rows.length; i++) {
-            temp.push(historyOrder.rows[i].idOrder)
-        }
-        arrListIdOrder = Array.from(new Set(temp))
         const listOrder: OrderWithDetail[] = []
-        arrListIdOrder.map(item => {
-            const order: OrderWithDetail = {
+        historyOrder.rows.map(item => {
+            let order: OrderWithDetail = {
+                address: '',
+                email: "",
+                firstName: "",
                 idOrder: "",
-                idUser: "1",
-                orderStatus: false,
+                idUser: "",
+                isTemporary: true,
+                lastName: "",
                 orderDate: "",
-                orderProducts: [],
-                user: {
-                    address: "", email: "", firstName: "", idUser: "", lastName: "", phone: "", postcode: "",
+                orderStatus: "",
+                phone: "",
+                postcode: '',
+
+                orderBooks: []
+            }
+            if (listOrder.length == 0) {
+                order.address = item.address
+                order.email = item.email
+                order.firstName = item.firstName
+                order.idOrder = item.idOrder
+                order.idUser = item.idUser
+                order.isTemporary = item.isTemporary
+                order.lastName = item.lastName
+                order.orderDate = item.orderDate
+                order.orderStatus = item.orderStatus
+                order.phone = item.phone
+                order.postcode = item.postcode
+
+                order.orderBooks.push({
+                    idBook: item.idBook,
+                    idOrder: item.idOrder,
+                    price: item.price,
+                    imageBookCover: item.imageBookCover,
+                    bookTitle: item.bookTitle,
+                    state: item.state,
+                    quantity: item.quantity
+                })
+                listOrder.push(order)
+            }
+            else {
+                let check = -1
+                listOrder.map((item2, index2) => {
+                    if (item2.idOrder == item.idOrder) {
+                        check = 1
+                        listOrder[index2].orderBooks.push({
+                            idBook: item.idBook,
+                            idOrder: item.idOrder,
+                            price: item.price,
+                            state: item.state,
+                            bookTitle: item.bookTitle,
+                            imageBookCover: item.imageBookCover,
+                            quantity: item.quantity
+                        })
+                    }
+
+                })
+                if (check == -1) {
+                    order.address = item.address
+                    order.email = item.email
+                    order.firstName = item.firstName
+                    order.idOrder = item.idOrder
+                    order.idUser = item.idUser
+                    order.isTemporary = item.isTemporary
+                    order.lastName = item.lastName
+                    order.orderDate = item.orderDate
+                    order.orderStatus = item.orderStatus
+                    order.phone = item.phone
+
+                    order.postcode = item.postcode
+                    order.orderBooks.push({
+                        idBook: item.idBook,
+                        idOrder: item.idOrder,
+                        price: item.price,
+                        state: item.state,
+                        bookTitle: item.bookTitle,
+                        imageBookCover: item.imageBookCover,
+                        quantity: item.quantity
+                    })
+                    listOrder.push(order)
                 }
             }
-            listOrderRows.map(item1 => {
-                if (item1.idOrder == item) {
-                    order.idOrder = item1.idOrder,
-                        order.idUser = item1.idUser,
-                        order.orderStatus = true,
-                        order.orderDate = item1.orderDate,
 
-                        order.orderProducts.push({
-                            id: item1.idOrderProduct,
-                            idOrder: item1.idOder,
-                            idProduct: item1.idProduct,
-                            price: item1.price,
-                            quantity: item1.quantity,
-                            product: {
-                                idProduct: item1.idProduct,
-                                name: item1.name,
-                                img: item1.img,
-                                price: item1.price
-                            }
-                        }),
-                        order.user = {
-                            firstName: item1.firstName,
-                            lastName: item1.lastName,
-                            address: item1.address,
-                            idUser: item1.idUser,
-                            phone: item1.phone,
-                            postcode: item1.postcode,
-                            email: item1.email
-                        }
-                }
-            })
-
-            listOrder.push(order)
         })
 
-        return {listOrder, arrNumberPageOrder }
+
+        return {listOrder,bookCount}
+
     }
 }
 export const orderService = new OrderService()

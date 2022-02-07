@@ -5,5 +5,5 @@ export const pool= new Pool({
     user: "postgres",
     port: 5432,
     password: "tunguyen20",
-    database: "[dbFirst]"
+    database: "dbWebBooks"
 })

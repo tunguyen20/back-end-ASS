@@ -1,62 +1,120 @@
+
+
+import { QueryResult } from "pg";
 import { pool } from "../controller/connectdatabase/Pool";
-import { orderProduct } from '../model/Cart'
+import { Cart, Carts, orderBook } from '../model/Cart'
 import { User } from "../model/User";
 const { v4: uuidv4 } = require("uuid")
 class CartService {
     getListCart = async (idUser: string) => {
-        const carts = await pool.query(`select "idOrderProduct", o."idOrder", p."idProduct" ,p."name",p.img,op.quantity ,p.price FROM public."order_product" op join "order" o on o."idOrder" = op."idOrder" 
-        join product p on p."idProduct" = op."idProduct" where o."orderStatus" =false and o."idUser" ='${idUser}';`);
-        return (carts.rows)
+        const resultCarts: QueryResult = await pool.query(`select b.state, o."idOrder" ,bl."imageBookCover" ,b."idBook",bl."bookTitle" ,b.price,ob.quantity ,ob."idOrderBook" from "order" o join "user" u  on o."idUser" =u."idUser" join order_book ob on ob."idOrder" = o."idOrder" 
+        join book b on b."idBook" = ob."idBook"  join book_line bl on bl."idBookLine" = b."idBookLine" where u."idUser" ='${idUser}' and o."isTemporary" =false  ORDER BY b."idBook"  `);
+
+        if (resultCarts.rows.length == 0) {
+            const resultIdOrder: QueryResult = await pool.query(`select o."idOrder"  from "order" o join "user" u on u."idUser" =o."idUser" where o."isTemporary" =false  and u."idUser" ='${idUser}' `);
+            // const idOrder = resultIdOrder.rows[0].idOrder
+            if (resultIdOrder.rowCount == 0) {
+                let idOrder = uuidv4()
+                await pool.query(`INSERT INTO public."order"
+                ("idOrder", "idUser", "orderStatus", "orderDate", "firstName", "lastName", phone, email, address, postcode, "isTemporary")
+                VALUES('${idOrder}', '${idUser}', 'Pending', '2002-04-02', '', '', '', '', '', '', false);
+                `)
+                const carts: Carts = {
+                    idOrder: idOrder,
+                    Cart: []
+                }
+                return (carts)
+            }
+            else {
+                const carts: Carts = {
+                    idOrder: resultIdOrder.rows[0].idOrder,
+                    Cart: []
+                }
+                return (carts)
+            }
+        }
+        else {
+            const carts: Carts = {
+                idOrder: "",
+                Cart: [{
+                    idBook: "",
+                    imageBookCover: "",
+                    bookTitle: "",
+                    price: 0,
+                    quantity: 0,
+                    idOrderBook: "",
+                    state: false
+                }]
+            }
+            resultCarts.rows.map((item, index) => {
+                carts.idOrder = item.idOrder
+                if (carts.Cart[0].idBook == "") {
+                    carts.Cart[0].idBook = item.idBook,
+                        carts.Cart[0].bookTitle = item.bookTitle,
+                        carts.Cart[0].imageBookCover = item.imageBookCover,
+                        carts.Cart[0].price = item.price,
+                        carts.Cart[0].quantity = item.quantity
+                    carts.Cart[0].idOrderBook = item.idOrderBook
+                    carts.Cart[0].state = item.state
+                }
+                else {
+                    carts.Cart.push({
+                        idBook: item.idBook,
+                        bookTitle: item.bookTitle,
+                        imageBookCover: item.imageBookCover,
+                        price: item.price,
+                        quantity: item.quantity,
+                        idOrderBook: item.idOrderBook,
+                        state: item.state
+                    })
+                }
+
+            })
+
+            return (carts)
+        }
+
+
     }
-    addCart = async (orderProduct: orderProduct, idUser: string) => {
-        const fullDataIdOrder = await pool.query(`select  "idOrder" from "order" o join "user" u on o."idUser"=u."idUser" 
-       where o."orderStatus" =false and u."idUser" ='${idUser}'`);
-        let idOder: any = fullDataIdOrder.rows
-        if (idOder[0] != null) {
-            let idOrderProduct = uuidv4()
-            let idOrder = idOder[0]
-            await pool.query(`DO $$ DECLARE
+    addCart = async (orderBook: orderBook) => {
+        let idOrderBook = uuidv4()
+        await pool.query(`DO $$ DECLARE
             BEGIN
-            IF exists(select * from "order_product" op where op."idProduct" = '${orderProduct.idProduct}' and "idOrder"='${idOrder.idOrder}' ) then
-            UPDATE public."order_product"
-            SET    quantity=quantity +${orderProduct.quantity} where "idProduct" = '${orderProduct.idProduct}' and "idOrder" ='${idOrder.idOrder}';
-            else INSERT INTO public."order_product" ("idOrder", "idProduct", quantity, price, "idOrderProduct")
-            VALUES('${idOrder.idOrder}', '${orderProduct.idProduct}', ${orderProduct.quantity}, ${orderProduct.price},'${idOrderProduct}');
+            IF exists(select * from order_book ob  where ob."idBook"= '${orderBook.idBook}' and "idOrder"='${orderBook.idOrder}' ) then
+           UPDATE public.order_book SET   quantity=quantity+${orderBook.quantity}, price=${orderBook.quantity} where "idBook"='${orderBook.idBook}' and "idOrder"='${orderBook.idOrder}';
+
+            else INSERT INTO public.order_book
+            ("idOrder", "idBook", quantity, price, "idOrderBook")
+            VALUES('${orderBook.idOrder}', '${orderBook.idBook}',${orderBook.quantity}, ${orderBook.price}, '${idOrderBook}');
             END IF;
             END $$;`)
 
-        } else {
-            let idOrder = uuidv4()
-            let idOrderProduct = uuidv4()
-            await pool.query(`	INSERT INTO public."order" ("idOrder", "idUser", "orderStatus", "orderDate")
-             VALUES('${idOrder}', '${idUser}', false, '10:10 10-10-2021');`)
-
-            await pool.query(`INSERT INTO public."order_product" ("idOrder", "idProduct", quantity, price, "idOrderProduct")
-            VALUES('${idOrder}', '${orderProduct.idProduct}', ${orderProduct.quantity}, ${orderProduct.price},'${idOrderProduct}');`)
-        }
         return 1
     }
 
-    savePlusQuantityProductCart = async (idOrderProduct: string) => {
-        await pool.query(`UPDATE public."order_product"  SET  quantity=quantity+1 where "idOrderProduct" ='${idOrderProduct}';`)
+    savePlusQuantityBookCart = async (idOrderBook: string) => {
+        await pool.query(`UPDATE public."order_book"  SET  quantity=quantity+1 where "idOrderBook" ='${idOrderBook}';`)
+    }
+    saveMinusQuantityBookCart = async (idOrderBook: string) => {
+        await pool.query(`UPDATE public."order_book"  SET  quantity=quantity-1 where "idOrderBook" ='${idOrderBook}';`)
+    }
+    deleteBookCart = async (idOrderBook: string) => {
+        await pool.query(`DELETE FROM public."order_book"
+        WHERE "idOrderBook" ='${idOrderBook}'`)
+    }
+    savedOrder = async (userInfor: User, carts: Carts) => {
+        let timeNow = new Date().toLocaleString();
+        console.log(timeNow);
+        let queryUpdateOrderBook = ""
+        carts.Cart.map((item) => {
+            queryUpdateOrderBook += `UPDATE public.order_book  set  price=${item.price} where "idOrderBook"='${item.idOrderBook}';`
+        })
+        await pool.query(queryUpdateOrderBook)
 
-    }
-    saveMinusQuantityProductCart = async (idOrderProduct: string) => {
-        await pool.query(`UPDATE public."order_product"  SET  quantity=quantity-1 where "idOrderProduct" ='${idOrderProduct}';`)
-    }
-    deleteProductCart = async (idOrderProduct: string) => {
-        await pool.query(`DELETE FROM public."order_product"
-        WHERE "idOrderProduct" ='${idOrderProduct}'`)
-    }
-    saveInforUserAndAddOrder = async (inforUser: User,idOrder:string) => {
-        let timeNow = new Date();
-        
-        //update user
-        await pool.query(`UPDATE public."user"
-        SET "firstName"='${inforUser.firstName}', "lastName"='${inforUser.lastName}', phone='${inforUser.phone}', email='${inforUser.email}', address='${inforUser.address}', postcode='${inforUser.postcode}'
-        WHERE "idUser"='${inforUser.idUser}';`)
-        //add order
-        await pool.query(`UPDATE public."order"  SET  "orderStatus"=true , "orderDate"='${timeNow}' WHERE "idOrder"='${idOrder}';`)
+        await pool.query(`UPDATE public."order"
+       SET  "orderDate"='${timeNow}', "firstName"='${userInfor.firstName}', "lastName"='${userInfor.lastName}', phone='${userInfor.phone}', email='${userInfor.email}', address='${userInfor.address}', postcode='${userInfor.postcode}', "isTemporary"=true
+       WHERE "idOrder"='${carts.idOrder}';`)
+
     }
 }
 

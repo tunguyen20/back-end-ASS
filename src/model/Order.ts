@@ -1,4 +1,5 @@
-import { orderProduct } from "./Cart";
+
+import { orderBook } from "./Cart";
 import { Product } from "./Product";
 import { User } from "./User";
 
@@ -12,59 +13,36 @@ import { User } from "./User";
 export interface Order {
     idOrder: string
     idUser: string
-    orderStatus: boolean
+    orderStatus: string
     orderDate: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
+    address: string
+    postcode: string
+    isTemporary: boolean
+}
+
+export interface orderBookProps {
+    idBook: string
+    price: number
+    quantity: number
+    idOrder: string
+    bookTitle: string
+    state: boolean
+    imageBookCover: string
 }
 export interface OrderWithDetail extends Order {
-    orderProducts: OrderProduct[]
-    user: User
-}
-// export const order: OrderWithDetail = {
-//     idOrder: "",
-//     idUser: "1",
-//     orderStatus: false,
-//     orderDate: "",
-//     orderProducts: [{
-//         id: "",
-//         idOrder: "",
-//         idProduct: "",
-//         price: 334,
-//         quantity: 2,
-//         product: {
-//             idProduct: "",
-//             img: "",
-//             name: "",
-//             price: 211221
-//         }
-//     }
+    orderBooks: orderBookProps[]
 
-//     ],
-//     user: {
-//         address: "",
-//         email: "",
-//         firstName: "",
-//         idUser: "",
-//         lastName: "",
-//         phone: "",
-//         postcode: "",
-//     }
-// }
-// export interface OrderProducts {
-//     products: Cart
-//     firstName: string
-//     lastName: string
-//     address: string
-//     mobile: string
-//     email: string
-//     postcode: string
-//     time: number
 
-// }
-export interface OrderProduct {
-    id: string
-    idOrder: string
-    idProduct: string
-    quantity: number
-    price: number
-    product: Product
 }
+// export interface OrderProduct {
+//     id: string
+//     idOrder: string
+//     idProduct: string
+//     quantity: number
+//     price: number
+//     product: Product
+// }

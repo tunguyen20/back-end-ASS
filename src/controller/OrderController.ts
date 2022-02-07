@@ -6,9 +6,9 @@ import { json } from 'stream/consumers';
 class OrderController {
     getListOrder = async (req: Request, res: Response) => {
         const pageSize: number = req.body.pageSize
-        const pageIndex:number= req.body.pageIndex
-        const idUser=req.body.idUser
-        return res.json(await orderService.getListOrder(pageSize, pageIndex, idUser))
+        const page: number = req.body.page
+        const idUser = req.body.idUser
+        return res.json(await orderService.getListOrder(pageSize, page, idUser))
     }
 }
 
