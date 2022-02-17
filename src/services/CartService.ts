@@ -108,7 +108,7 @@ class CartService {
         carts.Cart.map((item) => {
             queryUpdateOrderBook += `UPDATE public.order_book  set  price=${item.price} where "idOrderBook"='${item.idOrderBook}';`
         })
-        await pool.query(queryUpdateOrderBook)
+        await pool.query(queryUpdateOrderBook)  
 
         await pool.query(`UPDATE public."order"
        SET  "orderDate"='${timeNow}', "firstName"='${userInfor.firstName}', "lastName"='${userInfor.lastName}', phone='${userInfor.phone}', email='${userInfor.email}', address='${userInfor.address}', postcode='${userInfor.postcode}', "isTemporary"=true
