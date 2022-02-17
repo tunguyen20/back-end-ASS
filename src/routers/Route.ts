@@ -59,6 +59,11 @@ router.post('/delete-book-cart', verify, cartController.deleteBookCart)
 
 router.post('/checkout', cartController.saveOrder)
 router.post('/product/search', productController.getListBookSearchWithPagination)
-router.post('/orders', verify, orderController.getListOrder)
+
+
+router.post('/orders', verify, orderController.getListOrderbyUser)
+router.post('/admin-orders', orderController.getListOrders)
+router.post('/save-status', orderController.setStatusOrder)
+
 
 export default router;

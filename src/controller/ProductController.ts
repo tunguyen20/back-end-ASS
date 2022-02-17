@@ -40,7 +40,7 @@ class ProductController {
     }
     addBook = async (req: Request, res: Response) => {
         let BookLineBook: BookLine = req.body.bookLine
-        console.log(BookLineBook);
+      
         return res.json(await productService.AddProduct(BookLineBook))
     }
     deleteBook = async (req: Request, res: Response) => {

@@ -17,7 +17,7 @@ class CartService {
                 let idOrder = uuidv4()
                 await pool.query(`INSERT INTO public."order"
                 ("idOrder", "idUser", "orderStatus", "orderDate", "firstName", "lastName", phone, email, address, postcode, "isTemporary")
-                VALUES('${idOrder}', '${idUser}', 'Pending', '2002-04-02', '', '', '', '', '', '', false);
+                VALUES('${idOrder}', '${idUser}', 'PENDING', '2002-04-02', '', '', '', '', '', '', false);
                 `)
                 const carts: Carts = {
                     idOrder: idOrder,
@@ -104,7 +104,6 @@ class CartService {
     }
     savedOrder = async (userInfor: User, carts: Carts) => {
         let timeNow = new Date().toLocaleString();
-        console.log(timeNow);
         let queryUpdateOrderBook = ""
         carts.Cart.map((item) => {
             queryUpdateOrderBook += `UPDATE public.order_book  set  price=${item.price} where "idOrderBook"='${item.idOrderBook}';`

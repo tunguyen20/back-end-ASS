@@ -4,11 +4,27 @@ import { json } from 'stream/consumers';
 
 
 class OrderController {
-    getListOrder = async (req: Request, res: Response) => {
+    getListOrderbyUser = async (req: Request, res: Response) => {
         const pageSize: number = req.body.pageSize
         const page: number = req.body.page
         const idUser = req.body.idUser
-        return res.json(await orderService.getListOrder(pageSize, page, idUser))
+        return res.json(await orderService.getListOrderByUser(pageSize, page, idUser))
+    }
+    getListOrders = async (req: Request, res: Response) => {
+        const pageSize: number = req.body.pageSize
+        const page: number = req.body.page
+        const search: string = req.body.search
+        const sortBy = req.body.sortBy
+        const filter = req.body.filter
+        console.log(req.body);
+        
+        return res.json(await orderService.getListOrder(pageSize, page, sortBy, filter, search))
+    }
+    setStatusOrder = async (req: Request, res: Response) => {
+
+        let nameStatus = req.body.nameStatusOrder
+        let idOrder = req.body.idOrder
+        await orderService.setStatusOrder(nameStatus, idOrder)
     }
 }
 

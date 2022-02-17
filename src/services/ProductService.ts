@@ -336,24 +336,31 @@ class ProductService {
         bookLine.media.map((item, index) => {
             queryInsertImg += `INSERT INTO public.media ("idBookLine", image, "idImage") VALUES('${item.idBookLine}', '${item.image}', '${item.idImage}');`
         })
-        await pool.query(`DO $$ DECLARE
-        BEGIN
-        IF exists(select*FROM public.book_line where "idBookLine"='${bookLine.idBookLine}') then
-       UPDATE public.book_line SET  "bookTitle"='${bookLine.bookTitle}', "bookAuthor"='${bookLine.bookAuthor}',
-      "bookDescr"='${bookLine.bookDescr}', "idPublisher"='${bookLine.idPublisher}', "publicationDate"='${bookLine.publicationDate}', "idBookCategory"='${bookLine.idBookCategory}' , "createdAt"='${bookLine.createdAt}', "buyCount"=${bookLine.buyCount}, "updatedAt"='${bookLine.updatedAt}' ,"imageBookCover"='${bookLine.imageBookCover}' where  public.book_line."idBookLine" ='${bookLine.idBookLine}';
-
-      DELETE FROM public.media   WHERE "idBookLine"='${bookLine.idBookLine}';        
-       ${queryUpdateBook}
-       ${queryInsertImg}
-        else INSERT INTO public.book_line ("idBookLine", "bookTitle", "bookAuthor", "bookDescr", "idPublisher", "publicationDate", "idBookCategory", "createdAt", "buyCount","updatedAt", "imageBookCover") 
-        VALUES('${bookLine.idBookLine}', '${bookLine.bookTitle}', '${bookLine.bookAuthor}', '${bookLine.bookDescr}', '${bookLine.idPublisher}', '${bookLine.publicationDate}', '${bookLine.idBookCategory}','${bookLine.createdAt}',${bookLine.buyCount},'${bookLine.updatedAt}','${bookLine.imageBookCover}');
-           
-        ${queryInsertBook}
-        ${queryInsertImg}
-
+        try {
+            await pool.query(`DO $$ DECLARE
+            BEGIN
+            IF exists(select*FROM public.book_line where "idBookLine"='${bookLine.idBookLine}') then
+           UPDATE public.book_line SET  "bookTitle"='${bookLine.bookTitle}', "bookAuthor"='${bookLine.bookAuthor}',
+          "bookDescr"='${bookLine.bookDescr}', "idPublisher"='${bookLine.idPublisher}', "publicationDate"='${bookLine.publicationDate}', "idBookCategory"='${bookLine.idBookCategory}' , "createdAt"='${bookLine.createdAt}', "buyCount"=${bookLine.buyCount}, "updatedAt"='${bookLine.updatedAt}' ,"imageBookCover"='${bookLine.imageBookCover}' where  public.book_line."idBookLine" ='${bookLine.idBookLine}';
+    
+          DELETE FROM public.media   WHERE "idBookLine"='${bookLine.idBookLine}';        
+           ${queryUpdateBook}
+           ${queryInsertImg}
+            else INSERT INTO public.book_line ("idBookLine", "bookTitle", "bookAuthor", "bookDescr", "idPublisher", "publicationDate", "idBookCategory", "createdAt", "buyCount","updatedAt", "imageBookCover") 
+            VALUES('${bookLine.idBookLine}', '${bookLine.bookTitle}', '${bookLine.bookAuthor}', '${bookLine.bookDescr}', '${bookLine.idPublisher}', '${bookLine.publicationDate}', '${bookLine.idBookCategory}','${bookLine.createdAt}',${bookLine.buyCount},'${bookLine.updatedAt}','${bookLine.imageBookCover}');
+               
+            ${queryInsertBook}
+            ${queryInsertImg}
+            
+            END IF;
+            END $$;`);
+            
+        } catch (error) {
+        console.log(error);
         
-        END IF;
-        END $$;`);
+            
+        }
+       
 
 
     }
